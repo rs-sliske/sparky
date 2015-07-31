@@ -3,7 +3,7 @@
 #include <iostream>
 #include "src/graphics/window.h"
 
-#define USE_TRIANGLE_TEST 1;
+#define USE_TRIANGLE_TEST 1
 
 int main() {
 
@@ -17,6 +17,9 @@ int main() {
 
 	while (!window.closed()){
 		window.clear();
+		double x, y;
+		window.getMousePos(x, y);
+		std::cout << x << ":" << y << std::endl;
 #if USE_TRIANGLE_TEST
 		glBegin(GL_TRIANGLES);
 		glVertex2f(-0.5f, -0.5f);

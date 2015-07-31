@@ -9,6 +9,8 @@
 
 int main() {
 	using namespace sparky;
+	using namespace maths;
+
 	graphics::Window window("Sparky", 800, 600);
 
 	glClearColor(0.2f, 0.3f, 0.9f, 0.5f);
@@ -17,16 +19,20 @@ int main() {
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	maths::vec2 v1(6, 2);
-	maths::vec2 v2(1,-4);
+	vec2 v1(6, 2);
+	vec2 v2(1,-4);
 
-	maths::vec2 v3 = v1 * v2;
-
-	println(v1 << " * "<< v2 << " = " << v3);
-	//println(v2);
-	//println(v3);
+	vec2 v3 = v1 * v2;
 
 	float xp = 0, yp = 0;
+
+	mat4 m1 = mat4::scale(vec3(2, 3, 1));
+	mat4 m2 = mat4::translate(vec3(1, 3, 7));
+
+	mat4 m3 = m1 * m2;
+	println(m1);
+	println(m2);
+	println(m3);
 
 	while (!window.closed()){
 		window.clear();

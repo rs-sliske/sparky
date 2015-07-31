@@ -1,5 +1,7 @@
+#include <GL\glew.h>
 #include "window.h"
 #include <iostream>
+
 
 
 namespace sparky { namespace graphics {	
@@ -26,12 +28,19 @@ namespace sparky { namespace graphics {
 		}
 		m_window = glfwCreateWindow(m_width, m_height, m_title, NULL, NULL);
 		if (!m_window){
-			glfwTerminate();
 			std::cout << "failed to create window" << std::endl;
 			return false;
 		}
 		glfwMakeContextCurrent(m_window);
 		glfwSetWindowSizeCallback(m_window, window_size_callback);
+
+		if (glewInit() != GLEW_OK){
+			std::cout << "failed to initialise glew" << std::endl;
+			return false;
+		}
+
+		std::cout << "OpenGL : " << glGetString(GL_VERSION) << std::endl;
+
 		return true;
 	}
 

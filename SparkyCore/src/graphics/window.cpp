@@ -33,7 +33,7 @@ namespace sparky { namespace graphics {
 
 	bool Window::init(){
 		if (!glfwInit())		{
-			std::cout << "failed to initialise glfw" << std::endl;
+			std::cout << "failed to initialize GLFW" << std::endl;
 			return false;
 		}
 		m_window = glfwCreateWindow(m_width, m_height, m_title, NULL, NULL);
@@ -48,7 +48,7 @@ namespace sparky { namespace graphics {
 		setCallbacks();
 
 		if (glewInit() != GLEW_OK){
-			std::cout << "failed to initialise glew" << std::endl;
+			std::cout << "failed to initialize GLEW" << std::endl;
 			return false;
 		}
 

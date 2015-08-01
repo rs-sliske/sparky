@@ -3,70 +3,61 @@
 #include <iostream>
 #include "src/graphics/window.h"
 #include "src/maths/maths.h"
+#include "src/utils/fileutils.h"
+#include "src\graphics\shader.h"
 
 #define USE_TRIANGLE_TEST 1
+#define SHOW_WINDOW 1
+
 #define println(a) std::cout << a << std::endl
 
 int main() {
 	using namespace sparky;
 	using namespace maths;
+	using namespace graphics;
 
 	graphics::Window window("Sparky", 800, 600);
 
-	glClearColor(0.2f, 0.3f, 0.9f, 0.5f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	GLfloat vertices[] =
+	{
+		0, 0, 0,
+		8, 0, 0,
+		0, 3, 0,
+		0, 3, 0,
+		8, 3, 0,
+		8, 0, 0
+	};
 
-	vec2 v1(6, 2);
-	vec2 v2(1,-4);
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
 
-	vec2 v3 = v1 * v2;
+	mat4 ortho = mat4::orthographic(0.0f, 16.0f, 0.0f, 9.0f, -1.0f, 1.0f);
 
-	float xp = 0, yp = 0;
+	Shader shader("res/shaders/basic.vert", "res/shaders/basic.frag");
+	shader.enable();
 
-	mat4 m1 = mat4::scale(vec3(2, 3, 1));
-	mat4 m2 = mat4::translate(vec3(1, 3, 7));
+	shader.setUniformMat4("pr_matrix", ortho);
+	shader.setUniformMat4("ml_matrix", mat4::translate(vec3(4, 3, 0)));
 
-	mat4 m3 = m1 * m2;
-	println(m1);
-	println(m2);
-	println(m3);
+	shader.setUniform2f("light_pos", vec2(4, 1.5f));
+	shader.setUniform4f("colour", vec4(0.2f, 0.3f, 0.8f, 1.0f));
+	double xp = 0, yp = 0;
 
 	while (!window.closed()){
 		window.clear();
-		double x, y;
-		window.getMousePos(x, y);
-		if (window.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT)){
-			std::cout << x << ":" << y << std::endl;
-		}
-		if (window.isKeyPressed(GLFW_KEY_UP)){
-			yp += 0.01f;
-		}
-		if (window.isKeyPressed(GLFW_KEY_DOWN)){
-			yp -= 0.01f;
-		}
-		if (window.isKeyPressed(GLFW_KEY_LEFT)){
-			xp -= 0.01f;
-		}
-		if (window.isKeyPressed(GLFW_KEY_RIGHT)){
-			xp += 0.01f;
-		}
-		if (window.isButtonPressed)
-#if USE_TRIANGLE_TEST
-		glBegin(GL_TRIANGLES);
-		glVertex2f(-0.5f + xp, -0.5f + yp);
-		glVertex2f( 0.0f + xp,  0.5f + yp);
-		glVertex2f( 0.5f + xp, -0.5f + yp);
-		glEnd();
-
-#else
-
-		glDrawArrays(GL_ARRAY_BUFFER, 0, 6);
-
-#endif
-
+		window.getMousePos(xp, yp);
+		vec2 mousePos(xp, yp);
+		mousePos -= vec2(400.0f, 300.0f);
+		mousePos /= vec2(800.0f / 16.0f, -600.0f / 9.0f);
+		mousePos += vec2(4.0f, 1.5f);
+		shader.setUniform2f("light_pos", mousePos);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		window.update();
 	}
 

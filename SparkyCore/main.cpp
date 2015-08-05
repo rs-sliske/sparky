@@ -1,105 +1,164 @@
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
 #include <iostream>
+#include <vector>
 #include "src/graphics/window.h"
 #include "src/maths/maths.h"
 #include "src/utils/fileutils.h"
 #include "src\graphics\shader.h"
 
-#include "src/graphics/buffers/buffer.h"
-#include "src/graphics/buffers/indexbuffer.h"
-#include "src/graphics/buffers/vertexarray.h"
+#include "src/graphics/buffers/buffers.h"
 
-#define USE_TRIANGLE_TEST 1
-#define SHOW_WINDOW 1
-#define USE_BUFFERS 1
+#include "src/graphics/2dgraphics.h"
+#include "src/graphics/3dgraphics.h"
+#include "src\utils\timer.h"
+
+
+#define USE_BATCH 1
+
+#define WINDOW_WIDTH  16.0f
+#define WINDOW_HEIGHT 9.0f
 
 #define println(a) std::cout << a << std::endl
+
+void genSprites(float size, std::deque<sparky::graphics::Renderable2D*>& queue, sparky::graphics::Window& window, sparky::graphics::Shader& shader);
+void genSprites3d(float size, int across, int depth, std::deque<sparky::graphics::Renderable3D*>& queue, sparky::graphics::Window& window);
 
 int main() {
 	using namespace sparky;
 	using namespace maths;
 	using namespace graphics;
 
-	graphics::Window window("Sparky", 800, 600);
+	graphics::Window window("Sparky", 1280, 720);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-#if USE_BUFFERS == 0
-	GLfloat vertices[] =
-	{
-		0, 0, 0,
-		8, 0, 0,
-		0, 3, 0,
-		0, 3, 0,
-		8, 3, 0,
-		8, 0, 0
-	};
+	
+	Shader shader("basic");
 
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-#else
-	GLfloat vertices[] =
-	{
-		0, 0, 0,
-		8, 0, 0,
-		0, 3, 0,
-		8, 3, 0
-	};
+	std::deque<Renderable3D*> renderables;
 
-	GLushort indices[] =
-	{
-		0, 1, 2,
-		2, 3, 1
-	};
-
-	VertexArray vao;
-	Buffer *vbo = new Buffer(vertices, 4 * 3, 3);
-	IndexBuffer *ibo = new IndexBuffer(indices,6);
-
-	vao.addBuffer(vbo, 0);
-
-#endif
-	mat4 ortho = mat4::orthographic(0.0f, 16.0f, 0.0f, 9.0f, -1.0f, 1.0f);
-
-	Shader shader("res/shaders/basic.vert", "res/shaders/basic.frag");
+	mat4 ortho = mat4::orthographic(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HEIGHT, -1.0f, 1.0f);
+	mat4 perspective = mat4::perspective(70.0f, window.getWidth() / window.getHeight(), 0.01f, 1000.0f);
 	shader.enable();
 
 	shader.setUniformMat4("pr_matrix", ortho);
-	shader.setUniformMat4("ml_matrix", mat4::translate(vec3(4, 3, 0)));
-
-	shader.setUniform2f("light_pos", vec2(4, 1.5f));
-	shader.setUniform4f("colour", vec4(0.2f, 0.3f, 0.8f, 1.0f));
-	double xp = 0, yp = 0;
-
-	while (!window.closed()){
-		window.clear();
-		window.getMousePos(xp, yp);
-		vec2 mousePos(xp, yp);
-		mousePos -= vec2(0.0f, 600.0f);
-		mousePos /= vec2(800.0f / 16.0f, -600.0f / 9.0f);
-		
-		shader.setUniform2f("light_pos", mousePos);
-#if USE_BUFFERS	 == 0
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-#else		
-		vao.bind();
-		ibo->bind();
-
-		shader.setUniformMat4("ml_matrix", mat4::translate(vec3(5, 5, 0)));
-		glDrawElements(GL_TRIANGLES, ibo->getCount(), GL_UNSIGNED_SHORT, 0);
-
-		shader.setUniformMat4("ml_matrix", mat4::translate(vec3(3, 1, 0)));
-		glDrawElements(GL_TRIANGLES, ibo->getCount(), GL_UNSIGNED_SHORT, 0);
-
-		ibo->unbind();
-		vao.unbind();
+	shader.setUniformMat4("pr_matrix", perspective);
+	
+	
+#if USE_BATCH
+	BatchRenderer3D renderer;
+#else
+	Simple2DRenderer renderer;
 #endif
-		window.update();
-	}
 
+	genSprites3d(0.1f,10,50, renderables, window);
+
+	println(renderables.size() << " sprites");
+
+	Timer timer;
+	Timer timer2;
+	//timer.reset();
+	long float t = 0;
+	unsigned short frames = 0;
+	vec2 mousePosModifier(WINDOW_WIDTH / window.getWidth(), -(WINDOW_HEIGHT / window.getHeight()));
+	vec2 flipY(0, WINDOW_HEIGHT);
+
+	vec3 cameraPos;
+	vec3 movex(0.1f, 0, 0);
+	vec3 movey(0, 0, 0.1f);
+
+	while (!window.closed()){	
+		float f = timer2.elapsed();
+		if (window.isKeyPressed(GLFW_KEY_LEFT_CONTROL)){
+			f *= 50;
+		}
+		else{
+			f *= 5;
+		}
+		timer2.reset();
+		frames++;
+		window.clear();
+
+		if (window.isKeyPressed(GLFW_KEY_UP)){
+			cameraPos += (movey * f);
+		}
+		if (window.isKeyPressed(GLFW_KEY_DOWN)){
+			cameraPos -= (movey * f);
+		}
+		if (window.isKeyPressed(GLFW_KEY_LEFT)){
+			cameraPos += (movex * f);
+		}
+		if (window.isKeyPressed(GLFW_KEY_RIGHT)){
+			cameraPos -= (movex * f);
+		}
+		
+		
+
+		vec2 mouse(0,window.getHeight());
+		//window.getMousePosition(mouse);
+		shader.setUniform2f("light_pos", flipY + mouse * mousePosModifier);
+		shader.setUniformMat4("ml_matrix", mat4::translate(cameraPos));
+		int sprites = 0;
+		int s = 0;
+		renderer.begin();
+		for (Renderable3D* r:renderables)
+		{
+			if (sprites > 10000000){
+				renderer.end();
+				renderer.flush();
+				renderer.begin();
+				sprites = 0;
+				s++;
+			}
+			sprites++;
+			renderer.submit(&(*r));
+		}
+		renderer.end();
+		renderer.flush();
+		window.update();
+		
+		if ((timer.elapsed() - t) > 1.0f){
+			t += 1.0f;
+			printf("%d fps - %d draw calls \n",frames,s);
+			frames = 0;
+		}
+	}
+	
 	return 0;
+}
+
+void genSprites(float size, std::deque<sparky::graphics::Renderable2D*>& queue, sparky::graphics::Window& window, sparky::graphics::Shader& shader){
+	sparky::maths::vec2 s(size * 0.9f, size * 0.9f);
+	 for (float y = size * 0.05; y < WINDOW_HEIGHT; y += size){
+		 for (float x = size * 0.05; x < WINDOW_WIDTH; x += size){
+			queue.push_back(new
+#if USE_BATCH
+				sparky::graphics::Renderable2D
+#else
+				sparky::graphics::StaticSprite
+#endif
+				(sparky::maths::vec3(x, y, 0),
+				s,
+				sparky::maths::vec4(rand() % 1000 / 1000.0f, rand() % 1000 / 1000.0f, rand() % 1000 / 1000.0f, 1)
+#if USE_BATCH
+#else
+				, shader
+#endif
+				));
+		}
+	}
+}
+
+void genSprites3d(float size,int across, int depth, std::deque<sparky::graphics::Renderable3D*>& queue, sparky::graphics::Window& window){
+	sparky::maths::vec3 s(size * 0.9f,0.01f, size * 0.9f);
+	for (float y = size * 0.05; y < 50; y += size){
+		for (float x = size * 0.05; x < 10; x += size){
+			queue.push_back(new
+				sparky::graphics::Renderable3D
+				(sparky::maths::vec3(x - (WINDOW_WIDTH/2), -0.5, y-1),
+				s,
+				sparky::maths::vec4(rand() % 1000 / 1000.0f, rand() % 1000 / 1000.0f, rand() % 1000 / 1000.0f, 1)
+				));
+		}
+	}
 }

@@ -51,7 +51,7 @@ namespace sparky { namespace graphics {
 			std::cout << "failed to initialize GLEW" << std::endl;
 			return false;
 		}
-
+		glfwSwapInterval(0);
 		std::cout << "OpenGL : " << glGetString(GL_VERSION) << std::endl;
 
 		return true;
@@ -83,9 +83,15 @@ namespace sparky { namespace graphics {
 		return false;
 	}
 
-	void Window::getMousePos(double& x, double& y){
+	void Window::getMousePosition(double& x, double& y){
 		x = mx;
 		y = my;
+	}
+
+	void Window::getMousePosition(maths::vec2& pos)
+	{
+		pos.x = mx;
+		pos.y = my;
 	}
 
 	void Window::setCallbacks() const {

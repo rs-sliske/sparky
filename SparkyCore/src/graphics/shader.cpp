@@ -9,6 +9,23 @@ namespace sparky { namespace graphics {
 		m_shaderID = load();
 	}
 
+	Shader::Shader(const char *name)
+	{
+		std::string n(name);
+		std::string path = "res/shaders/";
+		std::string vertPath(path + name + ".vert");
+		std::string fragPath(path + name + ".frag");
+
+		std::cout << "vert path : " << vertPath << std::endl;
+		std::cout << "frag path : " << fragPath << std::endl;
+
+		m_vertPath = vertPath.c_str();
+		m_fragPath = fragPath.c_str();
+
+
+		m_shaderID = load();
+	}
+
 	Shader::~Shader(){
 		glDeleteProgram(m_shaderID);
 	}

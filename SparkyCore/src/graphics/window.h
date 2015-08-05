@@ -1,6 +1,7 @@
 #pragma once
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
+#include "..\maths\vec2.h"
 
 #define MAX_KEYS 1024
 #define MAX_BUTTONS 256
@@ -28,7 +29,8 @@ namespace sparky { namespace graphics {
 
 		static  bool isKeyPressed(unsigned int keycode) ;
 		static  bool isButtonPressed(unsigned int button);
-		static void getMousePos(double& x, double& y);
+		static  void getMousePosition(double& x, double& y);
+		static  void getMousePosition(maths::vec2& pos);
 	private:
 		bool init();
 		void setCallbacks() const;

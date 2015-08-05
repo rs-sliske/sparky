@@ -14,6 +14,7 @@ namespace sparky { namespace graphics {
 		const char *m_vertPath, *m_fragPath;
 	public:
 		Shader(const char *vertPath, const char *fragPath);
+		Shader(const char *name);
 		~Shader();
 
 		void enable() const;

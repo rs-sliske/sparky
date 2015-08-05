@@ -8,6 +8,11 @@ namespace sparky { namespace maths {
 		this->z = z;
 	}
 	
+	vec3::vec3():vec3(0,0,0)
+	{
+
+	}
+
 	vec3& vec3::add(const vec3& other) {
 		x += other.x;
 		y += other.y;
@@ -27,12 +32,30 @@ namespace sparky { namespace maths {
 		z *= other.z;
 		return *this;
 	}
+
+	vec3& vec3::multiply(const float& amt)
+	{
+		x *= amt;
+		y *= amt;
+		z *= amt;
+		return *this;
+	}
+
 	vec3& vec3::divide(const vec3& other) {
 		x /= other.x;
 		y /= other.y;
 		z /= other.z;
 		return *this;
 	}
+
+	vec3& vec3::divide(const float& amt)
+	{
+		x /= amt;
+		y /= amt;
+		z /= amt;
+		return *this;
+	}
+
 	bool vec3::equals(const vec3& other) {
 		if (x == other.x){
 			if (y == other.y){
@@ -62,6 +85,13 @@ namespace sparky { namespace maths {
 		return left.divide(right);
 	}
 
+	vec3 operator*(vec3 left, const float& right){
+		return left.multiply(right);
+	}
+	vec3 operator/(vec3 left, const float& right){
+		return left.divide(right);
+	}
+
 	vec3& vec3::operator+=(const vec3& other){
 		return add(other);
 	}
@@ -71,6 +101,9 @@ namespace sparky { namespace maths {
 	vec3& vec3::operator*=(const vec3& other){
 		return multiply(other);
 	}
+
+	
+
 	vec3& vec3::operator/=(const vec3& other){
 		return divide(other);
 	}
